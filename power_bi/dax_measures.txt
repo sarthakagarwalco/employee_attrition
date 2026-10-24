@@ -1,0 +1,80 @@
+// ==============================================================================
+// File: dax_measures.txt
+// Project: Sales Team Performance & Retention Risk Analysis
+// Author: Sarthak Agarwal
+// Description: Core DAX Measures for the 4 Key KPI Scorecards & Analytical Views.
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// 4 CORE RESUME KPI CARDS
+// ------------------------------------------------------------------------------
+
+// 1. Total Workforce Headcount
+Total Employees = 
+COUNTROWS('hr_employee_attrition')
+
+// 2. Cumulative Departures
+Employees Left = 
+CALCULATE(
+    COUNTROWS('hr_employee_attrition'),
+    'hr_employee_attrition'[attrition] = "Yes"
+)
+
+// 3. Baseline Company Attrition Rate (%)
+Attrition Rate = 
+DIVIDE([Employees Left], [Total Employees], 0)
+
+// 4. High-Risk Headcount (Predictive Model Flag)
+High Risk Employees = 
+CALCULATE(
+    COUNTROWS('hr_employee_attrition'),
+    'hr_employee_attrition'[risk_level] = "High Risk"
+)
+
+// ------------------------------------------------------------------------------
+// COMMERCIAL & ROLE RETENTION MEASURES
+// ------------------------------------------------------------------------------
+
+// 5. Sales Representative Turnover Rate (Uncovered: 39.76%)
+Sales Rep Attrition Rate = 
+DIVIDE(
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[job_role] = "Sales Representative", 'hr_employee_attrition'[attrition] = "Yes"),
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[job_role] = "Sales Representative"),
+    0
+)
+
+// 6. Overtime Attrition Rate (30.53%)
+Overtime Attrition Rate = 
+DIVIDE(
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[over_time] = "Yes", 'hr_employee_attrition'[attrition] = "Yes"),
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[over_time] = "Yes"),
+    0
+)
+
+// 7. Non-Overtime Attrition Rate (10.44%)
+Non Overtime Attrition Rate = 
+DIVIDE(
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[over_time] = "No", 'hr_employee_attrition'[attrition] = "Yes"),
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[over_time] = "No"),
+    0
+)
+
+// 8. Overtime Burnout Turnover Spread
+Overtime Turnover Gap = 
+[Overtime Attrition Rate] - [Non Overtime Attrition Rate]
+
+// 9. Early Stage Churn Rate (0-1 Years Tenure: 34.88%)
+Early Stage Attrition Rate = 
+DIVIDE(
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[years_at_company] <= 1, 'hr_employee_attrition'[attrition] = "Yes"),
+    CALCULATE(COUNTROWS('hr_employee_attrition'), 'hr_employee_attrition'[years_at_company] <= 1),
+    0
+)
+
+// 10. Average Monthly Compensation
+Avg Monthly Income = 
+AVERAGE('hr_employee_attrition'[monthly_income])
+
+// 11. Average Workforce Satisfaction Score
+Avg Job Satisfaction = 
+AVERAGE('hr_employee_attrition'[job_satisfaction])
